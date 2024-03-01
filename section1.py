@@ -29,7 +29,7 @@ class Domain:
         initial_state = self.current_state
         new_state = self.dynamic(initial_state, action, disturbance)
         self.current_state = new_state
-        return (initial_state, action, new_state, self.reward(initial_state, action, disturbance))
+        return (initial_state, action, new_state, self.reward(initial_state, action, disturbance), disturbance)
 
     def function_j(self, state, agent, N, stocha=False):
         """
@@ -82,8 +82,7 @@ class Agent:
         ]
 
     def chose_action(self, state):
-        # action_id = np.random.randint(0, 3)
-        return self.action[0]
+        return self.action[0]  # Always go right
 
 
 # d = Domain()
