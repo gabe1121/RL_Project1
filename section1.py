@@ -3,7 +3,7 @@ class domain:
     def __init__(self):
         self.current_state = (3,0)
         self.m,self.n=5,5
-        self.w=0.5#np.random.uniform(0,1)
+        self.w=np.random.uniform(0,1)
                                         
     def get_current_state(self):
         return self.current_state
@@ -23,6 +23,7 @@ class domain:
         return (current_state,action,new_state,self.reward(new_state,action))
 
     def dynamic(self,state, action):
+        print(self.w)
         if self.w<=0.5:
             return (min(max(state[0]+action[0],0),self.n-1),min(max(state[1]+action[1],0),self.m-1))
         else:

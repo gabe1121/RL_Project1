@@ -10,6 +10,7 @@ class mdp_env:
         self.actions=action_space
 
     def ptransition(self):
+        self.d.w=np.random.uniform(0,1)
         num_states,num_actions=len(self.states),len(self.actions)
         transition_prob_matrix = np.zeros((num_states,num_actions,num_states),dtype=object)
         reward_matrix = np.zeros((num_states,num_actions))

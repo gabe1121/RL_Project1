@@ -7,6 +7,7 @@ class ereturn:
         self.gamma = 0.95
         self.d=domain()
     def function_j(self, state, agent, N):
+        self.d.w=np.random.uniform(0,1)
         self.d.current_state=state
         action=agent.chose_action(self.d.get_current_state())
         self.d.step(action)
@@ -18,7 +19,7 @@ class ereturn:
             return rew
 a = agent()
 init_state=(3,0)
-n=8
+n=100
 print('for N=',n, 'return is ', ereturn().function_j(init_state, a, n))
 
 #max_reward=19
