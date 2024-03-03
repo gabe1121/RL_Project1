@@ -51,6 +51,30 @@ def function_q(domain, agent, state, action, N, stocha=False):
 
 # d = Domain()
 # a = Agent()
+#
+# possible_state = [[[i, j] for j in range(d.m)] for i in range(d.n)]
+#
+# Q = np.zeros([d.n, d.m])
+# mu = np.zeros([d.n, d.m])
+#
+# for n in range(1, 10):
+#     print(f"N = {n}")
+#     for i in range(d.m):
+#         for j in range(d.n):
+#             q_a = []
+#             for action in a.action:
+#                 q_a.append(function_q(d, a, possible_state[i][j], action, n, True))
+#
+#             Q[i, j] = max(q_a)
+#             mu[i, j] = np.argmax(q_a)
+#
+#     print(Q)
+#     print("\n")
+#     print(mu)
+#     print("\n")
+
+
+
 # state = [0, 4]
 # # print(compute_mean_reward(d, state, [0, 1]))
 #
@@ -62,3 +86,5 @@ def function_q(domain, agent, state, action, N, stocha=False):
 #
 #     print(q_a)
 #     print(np.argmax(q_a))
+
+

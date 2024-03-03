@@ -71,37 +71,80 @@ a = Agent()
 possible_state = []
 [[possible_state.append([i, j]) for j in range(d.m)] for i in range(d.n)]
 norm_reward = []
+norm_probability = []
 
-for t_max in range(0, 10000, 100):
-    print(t_max)
-    for _ in range(t_max):
-        if stocha:
-            disturbance = np.random.random()
-        else:
-            disturbance = 0
-        state, action, _, reward, _ = d.step(a.chose_action(), disturbance)
-        h.append(state)
-        h.append(action)
-        h.append(reward)
+# for t_max in range(0, 1000, 10):
+#     print(t_max)
+#     for _ in range(t_max):
+#         if stocha:
+#             disturbance = np.random.random()
+#         else:
+#             disturbance = 0
+#         state, action, _, reward, _ = d.step(a.chose_action(), disturbance)
+#         h.append(state)
+#         h.append(action)
+#         h.append(reward)
+#
+#     reward_diff = []
+#     for state in possible_state:
+#         for action in a.action:
+#             reward_estimated = reward_estimator(h, state, action)
+#             reward = compute_mean_reward(d, state, action, stocha)
+#             reward_diff.append(reward - reward_estimated)
+#
+#     norm_reward.append(np.linalg.norm(reward_diff, ord=np.inf))
+#
+# plt.figure()
+# plt.plot(norm_reward)
+# plt.xlabel('lenght of h [-]')
+# plt.ylabel(r'$||r(s,a) - \^r(s,a)||_{\infty}$ [-]')
+# plt.show()
 
-    reward_diff = []
-    for state in possible_state:
-        for action in a.action:
-            reward_estimated = reward_estimator(h, state, action)
-            reward = compute_mean_reward(d, state, action, stocha)
-            reward_diff.append(reward - reward_estimated)
+# for t_max in range(0, 100):
+#     print(t_max)
+#     for _ in range(t_max):
+#         if stocha:
+#             disturbance = np.random.random()
+#         else:
+#             disturbance = 0
+#         state, action, _, reward, _ = d.step(a.chose_action(), disturbance)
+#         h.append(state)
+#         h.append(action)
+#         h.append(reward)
+#
+#     probability_diff = []
+#     for expected_state in possible_state:
+#         for state in possible_state:
+#             for action in a.action:
+#                 probability_estimated = probability_estimator(h, expected_state, state, action)
+#                 probability = compute_probability(d, expected_state, state, action, stocha)
+#                 probability_diff.append(probability - probability_estimated)
+#
+#     norm_reward.append(np.linalg.norm(probability_diff, ord=np.inf))
+#
+# plt.figure()
+# plt.plot(norm_reward)
+# plt.xlabel('lenght of h [-]')
+# plt.ylabel(r"$||p(s'|s,a) - \^p(s'|s,a)||_{\infty}$ [-]")
+# plt.show()
 
-    norm_reward.append(np.linalg.norm(reward_diff, ord=np.inf))
 
-plt.figure()
-plt.plot(norm_reward)
-plt.xlabel('lenght of h [-]')
-plt.ylabel(r'$||r(s,a) - \^r(s,a)||_{\infty}$ [-]')
-plt.show()
+for _ in range(100000):
+    if stocha:
+        disturbance = np.random.random()
+    else:
+        disturbance = 0
+    state, action, _, reward, _ = d.step(a.chose_action(), disturbance)
+    h.append(state)
+    h.append(action)
+    h.append(reward)
 
 
+q_a = []
+for action in a.action:
+    q_a.append(function_q(d, a, h, [3, 0], action, 3))
+
+print(q_a)
+print(np.argmax(q_a))
 
 
-
-
-# probability_estimator(h, [2, 2], [2, 1], [0, 1])
