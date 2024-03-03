@@ -13,13 +13,14 @@ class domain:
                    [5,-8,4,1,-8],
                    [6,-9,4,19,-5],
                    [-20,-17,-4,-3,9]])
-        return r[state[0]][state[1]]
+        new_state = self.dynamic(state, action, w)
+        return r[new_state[0]][new_state[1]]
         
     def step(self, action,w):
         current_state=self.get_current_state()
         new_state=self.dynamic(current_state,action,w)
         self.current_state=new_state
-        return (current_state,action,new_state,self.reward(new_state,action,w))
+        return (current_state,action,new_state,self.reward(current_state,action,w))
 
     def dynamic(self,state, action,w):
         if w<=0.5:

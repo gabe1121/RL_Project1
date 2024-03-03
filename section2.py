@@ -20,7 +20,7 @@ class ereturn:
             rew=0
             for w_ in range (len(w_options)):
                 new_state=self.d.dynamic(state,action,w_options[w_])
-                r=self.d.reward(new_state,action,w_options[w_])
+                r=self.d.reward(state,action,w_options[w_])
                 #print(N,new_state,action,r)
                 rew+=pw[w_]*(r+self.gamma*self.function_j(new_state,agent,N-1,stochastic))   
         return rew
@@ -57,9 +57,6 @@ if compute:
         a = agent()
         er=ereturn()
         cum_return=er.function_j(initial_state, a, steps,stochastic)
-        #print('for N=',steps, 'return is ', cum_return )
-        #print('Average total reward for',episodes,'episodes','of',steps,'steps each:',
-        #   format(mean, '.2f'),'SD',format(sd, '.2f'))
         save_j[initial_state[0],initial_state[1]]=format(cum_return, '.2f')
     print('Cumulative reward J_N(s) for Domain: ',domaintype[stochastic], 'N=',steps)
     print(save_j)
