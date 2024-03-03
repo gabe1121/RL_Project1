@@ -5,27 +5,30 @@ import matplotlib.pyplot as plt
 class ereturn:
     def __init__(self):
         self.gamma = 0.99
-
+        self.d=domain()
     def function_j(self, state, agent, N,stochastic):
         if stochastic:
-            dist=np.random.uniform(0,1)
+            pw=[0.5,0.5] #[alpha,1-alpha] alpha is p(w<=0.5)
+            w_options=[0.4,0.6] #<= 0.5 and >0.5
         else:
-            dist=0
-        self.d=domain(w=dist)
-        action=agent.chose_action(state)
-        new_state=self.d.dynamic(state,action)
-        r=self.d.reward(new_state,action)
+            pw=[1]  #alpha is 1 
+            w_options=[0.4] #<= 0.5
         if N==0:
             return 0
         else:
-            #print(N,new_state,action,r)
-            rew=r+self.gamma*self.function_j(new_state,agent,N-1,stochastic)    
+            action=agent.chose_action(state)
+            rew=0
+            for w_ in range (len(w_options)):
+                new_state=self.d.dynamic(state,action,w_options[w_])
+                r=self.d.reward(new_state,action,w_options[w_])
+                #print(N,new_state,action,r)
+                rew+=pw[w_]*(r+self.gamma*self.function_j(new_state,agent,N-1,stochastic))   
         return rew
 
 compute=False
 if compute:
     #Find steps
-    gamma = ereturn().gamma
+    gamma = 0.99
     reward_bound=19
     epsilon,max_N=9e-2,1e10
     j_diff_bound=[]
@@ -41,32 +44,22 @@ if compute:
     #plt.grid()
     #plt.show()
 
-    steps=10#N
+    steps=20
     initial_state=(3,0)
     stochastic=True
     domaintype=['deterministic', 'non-deterministic']
-    if stochastic:
-        episodes=20000
-    else:
-        episodes=1
-    save_j=np.zeros((episodes))
 
-    state_space=[(x, y) for x in range(domain().m) for y in range(domain().n)]
-    save_j_s_av=np.zeros((domain().m,domain().n))
-    save_j_s_sd=np.zeros((domain().m,domain().n))
+    m,n=5,5
+    state_space=[(x, y) for x in range(m) for y in range(n)]
+    save_j=np.zeros((m,n))
     for initial_state in state_space:
-        #print("Initial state: ",initial_state,'Domain: ',domaintype[stochastic])
-        for e in range (episodes):
-            a = agent()
-            er=ereturn()
-            cum_return=er.function_j(initial_state, a, steps,stochastic)
-            save_j[e]=(cum_return)
-            #print('for N=',steps, 'return is ', cum_return )
-        mean=np.average(save_j)
-        sd=np.sqrt(np.var(save_j))
+        #print("Initial state: ",initial_state,)
+        a = agent()
+        er=ereturn()
+        cum_return=er.function_j(initial_state, a, steps,stochastic)
+        #print('for N=',steps, 'return is ', cum_return )
         #print('Average total reward for',episodes,'episodes','of',steps,'steps each:',
         #   format(mean, '.2f'),'SD',format(sd, '.2f'))
-        save_j_s_av[initial_state[0],initial_state[1]]=format(mean, '.2f')
-        save_j_s_sd[initial_state[0],initial_state[1]]=format(sd, '.2f')
-    print(save_j_s_av)
-    print(save_j_s_sd)
+        save_j[initial_state[0],initial_state[1]]=format(cum_return, '.2f')
+    print('Cumulative reward J_N(s) for Domain: ',domaintype[stochastic], 'N=',steps)
+    print(save_j)
