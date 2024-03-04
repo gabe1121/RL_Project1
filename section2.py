@@ -1,48 +1,47 @@
 import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
+from functools import lru_cache
 from section1 import Domain, Agent
+import sys
+sys.setrecursionlimit(10000)
 
 
-d = Domain()
-a = Agent()
-state_ini = [3, 0]
-compute=False
+@lru_cache(maxsize=10000)
+def function_j(domain, state, agent, N, stocha=False):
+    """
+    The if else condition is defined in order to be able to treat deterministic and stochastic cases with the same
+    function. To do so, one simply has to input the param stocha=True. if not mentioned, the deterministic case is
+    considered.
+    """
+    if N == 0:
+        return 0
 
-if compute:
-    #Find steps (N)
-    gamma =d.gamma
-    reward_bound=19
-    epsilon,max_N=9e-2,1e10
-    j_diff_bound=[]
-    for N in range(int(max_N)):
-        j_diff_bound.append((reward_bound/(1-gamma))*gamma**N)
-        if j_diff_bound[-1] <=epsilon:
-            break
+    if stocha:
+        disturbance = [domain.w - 10 ** -3, domain.w + 10 ** -3]
+        probabilities = [(1 - domain.w), domain.w]
+    else:
+        disturbance = [0]
+        probabilities = [1]
 
-    # plt.figure()
-    # plt.plot(j_diff_bound)
-    # plt.xlabel('N [-]')
-    # plt.ylabel(r"$\frac{\gamma^N}{1-\gamma}B_r$ [-]")
-    # plt.grid()
-    # plt.show()
-    #N = 900
+    j_n = 0
+    for w, e in zip(disturbance, probabilities):
+        next_state = domain.dynamic(state, agent.chose_action(state), w)
+        reward = domain.reward(state, agent.chose_action(state), w)
+        j_n += e * (reward + domain.gamma * function_j(domain, (next_state[0], next_state[1]), agent, N - 1, stocha))
+    return j_n
 
-    J_N = [0]
-    #for n in range(1, N):
-    #    print(n)
-    #    J_N.append(d.function_j(state_ini, a, n, False))
-    #    print(J_N[-1]-J_N[-2])
 
-    stochastic=True
-    domaintype=['deterministic', 'non-deterministic']
-    if stochastic:
-        N=1
-    print('N=',N)
-    state_space=[(x, y) for x in range(d.m) for y in range(d.n)] #[state_ini]
-    save_j_s=np.zeros((d.m,d.n))
-    for state_ini in state_space:
-        #print("Initial state: ",state_ini,'Domain: ',domaintype[stochastic])
-        J_N=d.function_j(state_ini, a, N,stochastic)
-        save_j_s[state_ini[0],state_ini[1]]=format(J_N, '.2f')
-    print(save_j_s)
+def main(stocha):
+    d = Domain()
+    a = Agent()
+    N = 981
+
+    J_n = np.zeros([d.n, d.m])
+    for i in range(d.n):
+        for j in range(d.m):
+            J_n[i, j] = format(function_j(d, (i, j), a, N, stocha),'.2f')
+
+    print("\n", f"Cumulative reward J_n(s), N = {N}\n", J_n, "\n")
+
+
+if __name__ == "__main__":
+    main(True)

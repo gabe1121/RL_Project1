@@ -31,29 +31,6 @@ class Domain:
         self.current_state = new_state
         return (initial_state, action, new_state, self.reward(initial_state, action, disturbance), disturbance)
 
-    def function_j(self, state, agent, N, stocha=False):
-        """
-        The if else condition is defined in order to be able to treat deterministic and stochastic cases with the same
-        function. To do so, one simply has to input the param stocha=True. if not mentioned, the deterministic case is
-        considered.
-        """
-        if N == 0:
-            return 0
-
-        if stocha:
-            disturbance = [self.w - 10**-3, self.w + 10**-3]
-            probabilities = [(1-self.w), self.w]
-        else:
-            disturbance = [0]
-            probabilities = [1]
-
-        j_n = 0
-        for w, e in zip(disturbance, probabilities):
-            next_state = self.dynamic(state, agent.chose_action(state), w)
-            reward = self.reward(state, agent.chose_action(state), w)
-            j_n += e * (reward + self.gamma * self.function_j(next_state, agent, N - 1, stocha))
-        return j_n
-
     def dynamic(self, state, action, disturbance):
         """
         It can be seen from the problem definition that the stochastic and the deterministic domains are the same if the
@@ -75,55 +52,29 @@ class Domain:
 class Agent:
     def __init__(self):
         self.action = [
-            [0, 1],
-            [1, 0],
-            [0, -1],
-            [-1, 0],
+            (0, 1),
+            (1, 0),
+            (0, -1),
+            (-1, 0),
         ]
 
     def chose_action(self, state):
         return self.action[0]  # Always go right
 
-#*********************PRINT RESULTS FOR THE REPORT*****************************
-printsection1=False
-if printsection1:
-    stochastic=True
-    episodes=1
-    steps=10
-    initial_state=[3,0]
-    domaintype=['deterministic', 'non-deterministic']
 
-    if stochastic:
-        episodes=10
-    savereward=np.zeros((episodes))
-    etoprint=np.random.randint(0,episodes)#pick a random episode to print
-    print("Initial state: ",initial_state,'Domain: ',domaintype[stochastic])
-    print('Printing episode',etoprint+1,'of',episodes)
-    for e in range (episodes):
-        d = Domain()
-        a = Agent()
-        d.current_state=initial_state
-        for i in range(steps):
-            if stochastic:
-                w=np.random.uniform(0,1)
-            else:
-                    w=0.5
-            current_action = a.chose_action(d.get_current_state())
-            step=d.step(current_action,w)
-            if e== etoprint: #Print only one episode
-                print('From state', step[0],'take action', step[1],
-                ' New state:', step[2], 'with reward',step[3])
-            savereward[e]+=step[3]
+def main(stocha):
+    d = Domain()
+    a = Agent()
+    for i in range(10):
+        current_action = a.chose_action(d.get_current_state())
+        if stocha:
+            print(d.step(current_action, np.random.random()))
+        else:
+            print(d.step(current_action, 0))
 
-    mean=np.average(savereward)
-    sd=np.sqrt(np.var(savereward))
-    print('Average total reward for',episodes,'episodes','of',steps,'steps each:',
-        format(mean, '.2f'),'SD',format(sd, '.2f'))
-    # d = Domain()
-    # a = Agent()
-    # for i in range(10):
-    #     current_action = a.chose_action(d.get_current_state())
-    #     print(d.step(current_action, np.random.random()))
+
+if __name__ == "__main__":
+    main(True)
 
 
 
