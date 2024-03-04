@@ -1,7 +1,10 @@
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+from functools import lru_cache
 from section1 import Domain
+from section2 import function_j
+from section3 import function_q, Agent3
 from section3 import compute_mean_reward, compute_probability
 
 
@@ -22,19 +25,20 @@ def probability_estimator(trajectory, expected_state, state, action):
     matching_indices = [k for k, (s_k, a_k, _) in enumerate(trajectory) if (s_k, a_k) == (state, action)]
 
     if matching_indices:
-        sum_expected_stated = sum([1 if trajectory[k][2] == expected_state else 0 for k in matching_indices])
+        sum_expected_stated = sum([1 if tuple(trajectory[k][2]) == tuple(expected_state) else 0 for k in matching_indices])
         occurrences = len(matching_indices)
         return sum_expected_stated / occurrences
     else:
         return 0
 
 
-def function_q(domain, agent, trajectory, state, action, N):
+@lru_cache(maxsize=10000)
+def function_q_hat(domain, agent, trajectory, state, action, N):
     if N == 0:
         return 0
     else:
         possible_state = []
-        [[possible_state.append([i, j]) for j in range(domain.m)] for i in range(domain.n)]
+        [[possible_state.append((i, j)) for j in range(domain.m)] for i in range(domain.n)]
         possible_action = agent.action
         item_to_sum = []
         for expected_state in possible_state:
@@ -42,7 +46,7 @@ def function_q(domain, agent, trajectory, state, action, N):
             q_n1 = -10**10
             if probability != 0:
                 for action_i in possible_action:
-                    q_n_i = function_q(domain, agent, trajectory, expected_state, action_i, N-1)
+                    q_n_i = function_q_hat(domain, agent, trajectory, (expected_state[0], expected_state[1]), (action_i[0], action_i[1]), N-1)
                     if q_n_i > q_n1:
                         q_n1 = q_n_i
             item_to_sum.append(probability*q_n1)
@@ -50,7 +54,7 @@ def function_q(domain, agent, trajectory, state, action, N):
         return reward_estimator(trajectory, state, action) + domain.gamma * sum(item_to_sum)
 
 
-class Agent:
+class Agent4:
     def __init__(self):
         self.action = [
             [0, 1],
@@ -64,87 +68,116 @@ class Agent:
         return self.action[action_id]
 
 
-stocha = True
-h = []
-d = Domain()
-a = Agent()
-possible_state = []
-[[possible_state.append([i, j]) for j in range(d.m)] for i in range(d.n)]
-norm_reward = []
-norm_probability = []
+def main(stocha):
+    h = []
+    d = Domain()
+    a = Agent4()
+    possible_state = []
+    [[possible_state.append([i, j]) for j in range(d.m)] for i in range(d.n)]
+    norm_reward = []
+    norm_probability = []
+    h_vec = [1, 10, 50, 100, 500, 1000]
 
-# for t_max in range(0, 1000, 10):
-#     print(t_max)
-#     for _ in range(t_max):
-#         if stocha:
-#             disturbance = np.random.random()
-#         else:
-#             disturbance = 0
-#         state, action, _, reward, _ = d.step(a.chose_action(), disturbance)
-#         h.append(state)
-#         h.append(action)
-#         h.append(reward)
-#
-#     reward_diff = []
-#     for state in possible_state:
-#         for action in a.action:
-#             reward_estimated = reward_estimator(h, state, action)
-#             reward = compute_mean_reward(d, state, action, stocha)
-#             reward_diff.append(reward - reward_estimated)
-#
-#     norm_reward.append(np.linalg.norm(reward_diff, ord=np.inf))
-#
-# plt.figure()
-# plt.plot(norm_reward)
-# plt.xlabel('lenght of h [-]')
-# plt.ylabel(r'$||r(s,a) - \^r(s,a)||_{\infty}$ [-]')
-# plt.show()
+    for t_max in h_vec:
+        for _ in range(t_max):
+            if stocha:
+                disturbance = np.random.random()
+            else:
+                disturbance = 0
+            state, action, _, reward, _ = d.step(a.chose_action(), disturbance)
+            h.append(state)
+            h.append(action)
+            h.append(reward)
 
-# for t_max in range(0, 100):
-#     print(t_max)
-#     for _ in range(t_max):
-#         if stocha:
-#             disturbance = np.random.random()
-#         else:
-#             disturbance = 0
-#         state, action, _, reward, _ = d.step(a.chose_action(), disturbance)
-#         h.append(state)
-#         h.append(action)
-#         h.append(reward)
-#
-#     probability_diff = []
-#     for expected_state in possible_state:
-#         for state in possible_state:
-#             for action in a.action:
-#                 probability_estimated = probability_estimator(h, expected_state, state, action)
-#                 probability = compute_probability(d, expected_state, state, action, stocha)
-#                 probability_diff.append(probability - probability_estimated)
-#
-#     norm_reward.append(np.linalg.norm(probability_diff, ord=np.inf))
-#
-# plt.figure()
-# plt.plot(norm_reward)
-# plt.xlabel('lenght of h [-]')
-# plt.ylabel(r"$||p(s'|s,a) - \^p(s'|s,a)||_{\infty}$ [-]")
-# plt.show()
+        reward_diff = []
+        for state in possible_state:
+            for action in a.action:
+                reward_estimated = reward_estimator(h, state, action)
+                reward = compute_mean_reward(d, state, action, stocha)
+                reward_diff.append(reward - reward_estimated)
+
+        norm_reward.append(np.linalg.norm(reward_diff, ord=np.inf))
+
+    plt.figure()
+    plt.plot(h_vec, norm_reward)
+    plt.xlabel('lenght of h [-]')
+    plt.ylabel(r'$||r(s,a) - \^r(s,a)||_{\infty}$ [-]')
+    plt.show()
+
+    for t_max in h_vec:
+        for _ in range(t_max):
+            if stocha:
+                disturbance = np.random.random()
+            else:
+                disturbance = 0
+            state, action, _, reward, _ = d.step(a.chose_action(), disturbance)
+            h.append(state)
+            h.append(action)
+            h.append(reward)
+
+        probability_diff = []
+        for expected_state in possible_state:
+            for state in possible_state:
+                for action in a.action:
+                    probability_estimated = probability_estimator(h, expected_state, state, action)
+                    probability = compute_probability(d, expected_state, state, action, stocha)
+                    probability_diff.append(probability - probability_estimated)
+
+        norm_probability.append(np.linalg.norm(probability_diff, ord=np.inf))
+
+    plt.figure()
+    plt.plot(h_vec, norm_probability)
+    plt.xlabel('lenght of h [-]')
+    plt.ylabel(r"$||p(s'|s,a) - \^p(s'|s,a)||_{\infty}$ [-]")
+    plt.show()
+
+    Q = np.zeros([d.n, d.m])
+    for i in range(d.m):
+        for j in range(d.n):
+            q_a = []
+            for action in a.action:
+                q_a.append(function_q(d, a, (i, j), (action[0], action[1]), 8, stocha))
+
+            Q[i, j] = max(q_a)
+
+    h = []
+    for t_max in h_vec:
+        for _ in range(t_max):
+            if stocha:
+                disturbance = np.random.random()
+            else:
+                disturbance = 0
+            state, action, _, reward, _ = d.step(a.chose_action(), disturbance)
+            h.append(tuple(state))
+            h.append(tuple(action))
+            h.append(reward)
+
+        Q_hat = np.zeros([d.n, d.m])
+        mu = np.zeros([d.n, d.m])
+        for i in range(d.m):
+            for j in range(d.n):
+                q_a = []
+                for action in a.action:
+                    q_a.append(function_q_hat(d, a, tuple(h), (i, j), (action[0], action[1]), 8))
+
+                Q_hat[i, j] = max(q_a)
+                mu[i, j] = np.argmax(q_a)
+
+        print(f"len(h) = {t_max}, ||Q - Q_hat|| = ", np.max(np.max(Q-Q_hat)))
+
+    print(mu)
+    J_n_hat = np.zeros([d.n, d.m])
+    my_a = Agent3(mu)
+
+    for i in range(d.m):
+        for j in range(d.n):
+            J_n_hat[i, j] = function_j(d, (i, j), my_a, 981, stocha)
+
+    print(J_n_hat)
 
 
-for _ in range(100000):
-    if stocha:
-        disturbance = np.random.random()
-    else:
-        disturbance = 0
-    state, action, _, reward, _ = d.step(a.chose_action(), disturbance)
-    h.append(state)
-    h.append(action)
-    h.append(reward)
+if __name__ == "__main__":
+    main(False)
 
-
-q_a = []
-for action in a.action:
-    q_a.append(function_q(d, a, h, [3, 0], action, 3))
-
-print(q_a)
-print(np.argmax(q_a))
 
 
