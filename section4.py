@@ -76,7 +76,8 @@ def main(stocha):
     [[possible_state.append([i, j]) for j in range(d.m)] for i in range(d.n)]
     norm_reward = []
     norm_probability = []
-    h_vec = [1, 10, 50, 100, 500, 1000]
+    h_vec = range(1, 1001, 100)  # TO change depending on the case considered
+                                 # (increase the max range and the step size for the stchastic case)
 
     for t_max in h_vec:
         for _ in range(t_max):
