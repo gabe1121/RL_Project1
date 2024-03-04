@@ -31,29 +31,6 @@ class Domain:
         self.current_state = new_state
         return (initial_state, action, new_state, self.reward(initial_state, action, disturbance), disturbance)
 
-    def function_j(self, state, agent, N, stocha=False):
-        """
-        The if else condition is defined in order to be able to treat deterministic and stochastic cases with the same
-        function. To do so, one simply has to input the param stocha=True. if not mentioned, the deterministic case is
-        considered.
-        """
-        if N == 0:
-            return 0
-
-        if stocha:
-            disturbance = [self.w - 10**-3, self.w + 10**-3]
-            probabilities = [(1-self.w), self.w]
-        else:
-            disturbance = [0]
-            probabilities = [1]
-
-        j_n = 0
-        for w, e in zip(disturbance, probabilities):
-            next_state = self.dynamic(state, agent.chose_action(state), w)
-            reward = self.reward(state, agent.chose_action(state), w)
-            j_n += e * (reward + self.gamma * self.function_j(next_state, agent, N - 1, stocha))
-        return j_n
-
     def dynamic(self, state, action, disturbance):
         """
         It can be seen from the problem definition that the stochastic and the deterministic domains are the same if the
@@ -85,11 +62,19 @@ class Agent:
         return self.action[0]  # Always go right
 
 
-# d = Domain()
-# a = Agent()
-# for i in range(10):
-#     current_action = a.chose_action(d.get_current_state())
-#     print(d.step(current_action, np.random.random()))
+def main(stocha):
+    d = Domain()
+    a = Agent()
+    for i in range(10):
+        current_action = a.chose_action(d.get_current_state())
+        if stocha:
+            print(d.step(current_action, np.random.random()))
+        else:
+            print(d.step(current_action, 0))
+
+
+if __name__ == "__main__":
+    main(True)
 
 
 
