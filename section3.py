@@ -1,12 +1,13 @@
 import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
 from section1 import Domain, Agent
 from section2 import function_j
 from functools import lru_cache
 
 
-class MyAgent:
+class Agent3:
+    """
+    This agent is defined such that it always chose the best policy
+    """
     def __init__(self, mu):
         self.action = [
             [0, 1],
@@ -70,8 +71,6 @@ def main(stocha):
     d = Domain()
     a = Agent()
 
-    possible_state = [[[i, j] for j in range(d.m)] for i in range(d.n)]
-
     Q = np.zeros([d.n, d.m])
     mu = np.zeros([d.n, d.m])
 
@@ -89,22 +88,21 @@ def main(stocha):
 
         if np.array_equal(mu, mu_1):
             print(f"N = {n}, True")
-            # print(mu)
-            # print(mu_1)
         else:
             print(f"N = {n}, False")
 
         mu_1 = mu.copy()
-        # print(Q)
-        # print("\n")
-        # print(mu)
-        # print("\n")
+
+    print("\n")
+    print(mu)
+    print("\n")
 
     J_n = np.zeros([d.n, d.m])
-    my_a = MyAgent(mu)
+    my_a = Agent3(mu)
+
     for i in range(d.m):
         for j in range(d.n):
-            J_n[i, j] = function_j(d, (i, j), my_a, 981, stocha)
+            J_n[i, j] = function_j(d, (i, j), my_a, 8, stocha)
 
     print(J_n)
 
