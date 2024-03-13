@@ -9,12 +9,13 @@ from section3 import compute_mean_reward, compute_probability
 
 def make_trajectory(domain, agent, N, stocha=False):
     trajectory = []
+    state = domain.current_state
     for _ in range(N):
         if stocha:
             disturbance = np.random.random()
         else:
             disturbance = 0
-        state, action, _, reward, _ = domain.step(agent.chose_action(), disturbance)
+        state, action, _, reward, _ = domain.step(agent.chose_action(state), disturbance)
         trajectory.append(tuple(state))
         trajectory.append(tuple(action))
         trajectory.append(reward)
@@ -101,7 +102,7 @@ class Agent4:
             [-1, 0],
         ]
 
-    def chose_action(self):
+    def chose_action(self, state):
         action_id = np.random.randint(0, 4)
         return self.action[action_id]
 

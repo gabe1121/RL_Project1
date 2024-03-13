@@ -4,9 +4,12 @@ import matplotlib.pyplot as plt
 
 
 class Domain:
-    def __init__(self):
+    def __init__(self, gamma=False):
         self.current_state = [3, 0]
-        self.gamma = 0.99
+        if gamma:
+            self.gamma = gamma
+        else:
+            self.gamma = 0.99
         self.w = 0.5
         self.n = 5
         self.m = 5
